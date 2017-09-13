@@ -2,11 +2,10 @@
 // +----------------------------------------------------------------------
 // | Author: zhichengliang <atzcl0310@gmail.com>  Blog：https://www.zcloop.com
 // +----------------------------------------------------------------------
-namespace Atzcl\Auth;
+namespace Atzcl;
 
 use think\Db;
 use think\Config;
-use think\Route;
 use think\Session;
 use think\Request;
 
