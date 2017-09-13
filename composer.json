@@ -1,0 +1,20 @@
+{
+    "name": "atzcl/auth",
+    "description": "ThinkPHP-Auth",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "atzcl",
+            "email": "atzcl0310@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "Atzcl\\Auth\\": "src"
+        }
+    }
+}
