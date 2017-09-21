@@ -14,7 +14,7 @@ class Auth
     /**
      * @var array 默认配置
      * */
-    protected $_config = [
+    protected $configs = [
         'auth_on'               =>  true, // 权限开关
         // 认证方式：
         // 1为实时认证；每次验证，都重新读取数据库内的权限数据，如果对权限验证非常敏感的，建议使用实时验证
@@ -30,7 +30,7 @@ class Auth
      * @var array 请求类型
      */
 
-    protected $_method = [
+    protected $methods = [
         'GET',
         'POST',
         'PUT',
@@ -58,7 +58,7 @@ class Auth
         // 判断是否有设置配置项
         if ($auth = Config::get('auth')) {
             // 合并,覆盖
-            $this->_config = array_merge($this->_config, $auth);
+            $this->configs = array_merge($this->configs, $auth);
         }
     }
 
@@ -76,7 +76,7 @@ class Auth
     {
         $static = new static();
         // 判断是否开启 Auth 验证
-        if ($static->_config['auth_on'] !== true) {
+        if ($static->configs['auth_on'] !== true) {
             return true;
         }
 
@@ -110,7 +110,6 @@ class Auth
 
             // 如果是验证 URL, 并且 $auth (验证的规则) 跟 $query （正则匹配过的）不相等的话，那就进入请求参数验证
             if ($mode === 'url' && $query !== $auth[0]) {
-
                 // 解析规则中的param
                 // parse_str() 函数把 url的参数 解析到变量中
                 parse_str($query, $param);
@@ -122,26 +121,23 @@ class Auth
                  $_auth = preg_replace('/\?.*$/U', '', $auth[0]);
 
                 if (in_array($_auth, $route) && $intersect == $param) {
-
                     // 如果节点相符且url参数满足
                     // 判断是否需要验证请求方式
                     if ($method === false) {
                         $list[] = $auth[0];
                     } else {
-                        if ($static->request->method() === $static->_method[$auth[1]]) {
+                        if ($static->request->method() === $static->methods[$auth[1]]) {
                             $list[] = $auth[0];
                         }
                     }
                 }
             } else {
-
                 if (in_array($auth[0], $route)) {
-
                     // 判断请求类型 跟 需要验证的请求类型
                     if ($method === false) {
                         $list[] = $auth[0];
                     } else {
-                        if ($static->request->method() === $static->_method[$auth[1]]) {
+                        if ($static->request->method() === $static->methods[$auth[1]]) {
                             $list[] = $auth[0];
                         }
                     }
@@ -191,9 +187,9 @@ class Auth
         }
 
         $static = new static();
-        $auth_user =  $static->_config['auth_user'];
-        $auth_group_access = $static->_config['auth_group_access'];
-        $auth_group = $static->_config['auth_group'];
+        $auth_user =  $static->configs['auth_user'];
+        $auth_group_access = $static->configs['auth_group_access'];
+        $auth_group = $static->configs['auth_group'];
 
         // 利用视图查询，实现不依赖数据库视图的多表查询
         $user_groups = Db::view($auth_group_access, "{$auth_user}_id, {$auth_group}_id")
@@ -223,7 +219,7 @@ class Auth
         }
 
         // 判断权限验证方式
-        if ($static->_config['auth_type']  === 2 && Session::has('_auth_list_' . $uid . $t)) {
+        if ($static->configs['auth_type']  === 2 && Session::has('_auth_list_' . $uid . $t)) {
             return Session::get('_auth_list_' . $uid . $t);
         }
 
@@ -250,7 +246,7 @@ class Auth
         ];
 
         // 获取用户组所有权限规则
-        $rules = Db::name($static->_config['auth_rule'])->where($map)->field('condition, route, type')->select();
+        $rules = Db::name($static->configs['auth_rule'])->where($map)->field('condition, route, type')->select();
 
         // 循环规则，判断结果
         $authList = [];
@@ -258,7 +254,6 @@ class Auth
         foreach ($rules as $rule) {
             // 判断是否有附加规则
             if (!empty($rule['condition'])) {
-
                 // 根据condition进行验证
                 $user =$static->getUserInfo($uid); //获取用户信息,一维数组
                 $command = preg_replace('/\{(\w*?)\}/', '$user[\'\\1\']', htmlspecialchars_decode($rule['condition']));
@@ -279,7 +274,7 @@ class Auth
         }
 
         // 如果权限验证类型为 2，那么就把权限规则数组保存到 session
-        if ((new static())->_config['auth_type'] === 2) {
+        if ((new static())->configs['auth_type'] === 2) {
             // 规则列表结果保存到session
             Session::set('_auth_list_' . $uid . $t, $authList);
         }
@@ -308,9 +303,9 @@ class Auth
     {
         static $userInfo = [];
         $static = new static();
-        $user = Db::name($static->_config['auth_user']);
+        $user = Db::name($static->configs['auth_user']);
         // 获取用户表主键
-        $_pk = is_string($user->getPk()) ? $user->getPk() : "{$static->_config['auth_user']}_id";
+        $_pk = is_string($user->getPk()) ? $user->getPk() : "{$static->configs['auth_user']}_id";
         if (!isset($userInfo[$uid])) {
             $userInfo[$uid] = $user->where($_pk, $uid)->find();
         }
